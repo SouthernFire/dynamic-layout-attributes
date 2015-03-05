@@ -1,0 +1,52 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace SouthernFire_v9.CustomAttributes.ActionFilterAttributes
+{
+    public class DynamicLayoutAttribute : ActionFilterAttribute
+    {
+        public string LayoutName { get; set; }
+        private readonly bool _dynamicMode;
+
+        public DynamicLayoutAttribute(string layoutName)
+        {
+            LayoutName = layoutName;
+            _dynamicMode = false;
+        }
+
+        public DynamicLayoutAttribute()
+        {
+            _dynamicMode = true;
+        }
+
+        public override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            base.OnActionExecuted(filterContext);
+            string controller = filterContext.HttpContext.Request.RequestContext.RouteData.Values["controller"].ToString().ToLower();
+            string actionmethod = filterContext.HttpContext.Request.RequestContext.RouteData.Values["action"].ToString();
+            var result = filterContext.Result as ViewResult;
+            if (result != null)
+            {
+                if(_dynamicMode)
+                {
+                    switch(controller)
+                    {
+                        case "asp_dot_net":                         // this is the name of the controller
+                            LayoutName = "_Layout_w_banner";       // this is my 'content page layout #1'
+                            break;
+                        case "visual_studio":
+                            LayoutName = "_Layout_w_banner";        // this is my 'content page layout with a BANNER'
+                            break;
+                        default:
+                            LayoutName = "_Layout";                 // this is my shared layout > Views/Shared/_Layout
+                            break;
+                    }
+                }
+                result.MasterName = LayoutName;
+            }
+        }
+    }
+}
